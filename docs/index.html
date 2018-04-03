@@ -15,7 +15,7 @@ Os computadores da Intel são complicados.
 Parece que a Intel dividiu seus manuais em 10 volumes.  São eles: o basic architecture, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253665-sdm-vol-1.pdf">volume 1</a>; instruction set volumes <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253666-sdm-vol-2a.pdf">2a</a> (A-L), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253667-sdm-vol-2b.pdf">2b</a> (M-U), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/326018-sdm-vol-2c.pdf">2c</a> (V-Z), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/334569-sdm-vol-2d.pdf">2d</a> (referência); systems programming guide volumes <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253668-sdm-vol-3a.pdf">3a</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253669-sdm-vol-3b.pdf">3b</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/326019-sdm-vol-3c.pdf">3c</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/332831-sdm-vol-3d.pdf">3d</a>; o model-specific registers, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/335592-sdm-vol-4.pdf">volume 4</a>.
 
 Esses documentos cobrem as arquiteturas IA-32 e Intel 64. O primeiro a
-ser lido talvez seja o arquitetura básica que explica por exemplo o que é segmentação e pageamento
+ser lido talvez seja o arquitetura básica que explica por exemplo o que é segmentação e paginamento
 --- capítulo 3. Já o volume 3a</a> fala em detalhes como operar as coisas descritas no volume 1,
 arquitetura básica.
 
@@ -60,7 +60,7 @@ Algum mecanismo é necessário para controlar o monitor do computador; o
 vídeo do computador. O vídeo tem vários modos. Um deles bem útil é o
 modo texto que pode ser acessado, como uma tabela de 80 colunas por 25
 linhas, se escrevemos no endereço de memória física 0xB8000. Parece
-que isso é verdade só enquanto não habilitamos o pageamento de memória
+que isso é verdade só enquanto não habilitamos o paginamento de memória
 no cpu, onde então seria preciso escrever no endereço de
 memória virtual referente a este endereço físico; mas não verifiquei
 isso ainda.<p>
@@ -71,7 +71,7 @@ deseja, e ele executa, sem qualquer questionamento.
 
 <h2><a name="cpuid">O cpu</a></h2> 
 
-O cérebro do computador. Parece que à partir do 486, a Intel passou a
+O cérebro do computador. Parece que a partir do 486, a Intel passou a
 incluir uma instrução chamada <tt>cpuid</tt>; veja
 a <a href="https://github.com/wendi0/intel/raw/master/files/manuals/cpuid.pdf">documentação</a>
 dela. Essa instrução informa o nome e o número serial do seu cpu. A
@@ -342,7 +342,7 @@ optional.</blockquote>
 A idéia de segmentação é proteger certas partes da memória. Por
 exemplo, você pode ter o segmento da memória utilizado pelo kernel, e
 um segmento utilizado pelos usuários. Mas parece que esse isolamento
-também pode ser feito com pageamento apenas. Acho que a diferença
+também pode ser feito com paginamento apenas. Acho que a diferença
 ficaria entre a proteção feita pelo hardware, ou pelo kernel.<p>
 
 <blockquote>When operating in protected mode, all memory accesses pass
@@ -376,7 +376,7 @@ feito. <a href="https://github.com/wendi0/intel/raw/master/files/kernels/f0a212c
 imagem exibe alguma informação que o grub oferece. Por
 exemplo, <tt>mem_lower</tt> diz o quanto de memória livre você tem
 abaixo dos 1 MiB chamados de memória superior, e <tt>mem_upper</tt>
-diz o quanto de memória você tem à partir do primeiro 1MiB
+diz o quanto de memória você tem a partir do primeiro 1MiB
 inicial. Essencialmente, sua memória é <tt>mem_upper</tt> + 1 MiB. A
 imagem acima, entretanto, imprimirá os números em KiB.
 
@@ -448,9 +448,9 @@ informação --- veja o Iv3a, seção 3.4.5 para saber a função de cada
 bit desse.<p>
 
 Eis aqui como o cpu identifica o endereço linear do byte a ser
-lido. Se pageamento não está habilitado, esse endereço linear é o
+lido. Se paginamento não está habilitado, esse endereço linear é o
 endereço físico; se está, então ele é o endereço virtual, e o
-mecanismo de pageamento ainda precisa traduzir.
+mecanismo de paginamento ainda precisa traduzir.
 
 <blockquote>To translate a logical address into a linear address, the
 processor does the following: 1. Uses the offset in the segment
@@ -477,15 +477,15 @@ memória.<p>
 
 E a LDT? Mistério.
 
-<h2>O pageamento</h2>
+<h2>O paginamento</h2>
 
-Pageamento é um mecanismo compreendido pelo cpu de como trabalhar com
+Paginamento é um mecanismo compreendido pelo cpu de como trabalhar com
 a memória do computador. O cpu sabe o que fazer; para usá-lo, só
 precisamos construir as tabelas necessárias, e habilitar o
 mecanismo.<p>
 
-O registrador %cr0 controla o pageamento. Setando o bit 31 do %cr0,
-pageamento é habilitado. Em símbolos, <tt>asm ("orl $0x80000000,
+O registrador %cr0 controla o paginamento. Setando o bit 31 do %cr0,
+paginamento é habilitado. Em símbolos, <tt>asm ("orl $0x80000000,
 %cr0")</tt>.<p>
 
 <blockquote>The PG flag enables the page-translation mechanism. The
@@ -513,7 +513,7 @@ int main()
 eax: 0x80000001
 </pre>
 
-Quando pageamento é habilitado, 
+Quando paginamento é habilitado, 
 
 <blockquote>the processor divides the linear address space into
 fixed-size pages (of 4 KBytes, 2 MBytes, or 4 MBytes in length) that
@@ -537,7 +537,7 @@ page directories and page tables stored in memory. -- Iv3a, seção
 3.6</blockquote>
 
 Então precisamos construir essas tabelas e diretórios, e habilitar o
-pageamento. Só que uma coisa interessante que poderíamos fazer num
+paginamento. Só que uma coisa interessante que poderíamos fazer num
 certo kernel é simplesmente negar a execução de um programa se não o
 colocamos completamente em memória. Ou seja, fazemos memória virtual
 sem swaping. Isso evita escrever a lógica para swapping; a
@@ -550,6 +550,6 @@ os programas quando não há memória para executá-los. O espaço em disco
 
 <br><br>
 Created: Thu Jan 01 16:27:54 CET 2009.<br>
-Updated: Sun Jan 18 20:11:35 CET 2009.<br>
+Updated: Tue Apr  3 09:14:10 2018.<br>
 </body>
 
