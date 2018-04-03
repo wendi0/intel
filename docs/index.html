@@ -12,18 +12,12 @@ Os computadores da Intel são complicados.
 
 <h2>A arquitetura</h2>
 
-Os <a href="http://www.intel.com/products/processor/manuals/index.htm">livros</a>
-da Intel. Esses documentos cobrem as arquiteturas IA-32 e Intel 64. O
-primeiro a ser lido talvez seja o 
-<a href="http://download.intel.com/design/processor/manuals/253665.pdf">arquitetura
-básica</a> que explica por exemplo o que é segmentação e pageamento
---- capítulo 3. Já o 
-<a href="http://download.intel.com/design/processor/manuals/253668.pdf">volume
-3a</a> fala em detalhes como operar as coisas descritas no volume 1,
-arquitetura básica.<p>
+Parece que a Intel dividiu seus manuais em 10 volumes.  São eles: o basic architecture, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253665-sdm-vol-1.pdf">volume 1</a>; instruction set volumes <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253666-sdm-vol-2a.pdf">2a</a> (A-L), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253667-sdm-vol-2b.pdf">2b</a> (M-U), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/326018-sdm-vol-2c.pdf">2c</a> (V-Z), <a href="https://github.com/wendi0/intel/raw/master/files/manuals/334569-sdm-vol-2d.pdf">2d</a> (referência); systems programming guide volumes <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253668-sdm-vol-3a.pdf">3a</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/253669-sdm-vol-3b.pdf">3b</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/326019-sdm-vol-3c.pdf">3c</a>, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/332831-sdm-vol-3d.pdf">3d</a>; o model-specific registers, <a href="https://github.com/wendi0/intel/raw/master/files/manuals/335592-sdm-vol-4.pdf">volume 4</a>.
 
-<a href="http://download.intel.com/design/processor/manuals/253666.pdf">Instruções de A-M</a><br>
-<a href="http://download.intel.com/design/processor/manuals/253667.pdf">Instruções de N-Z</a>
+Esses documentos cobrem as arquiteturas IA-32 e Intel 64. O primeiro a
+ser lido talvez seja o arquitetura básica que explica por exemplo o que é segmentação e pageamento
+--- capítulo 3. Já o volume 3a</a> fala em detalhes como operar as coisas descritas no volume 1,
+arquitetura básica.
 
 <h2>O batimento cardíaco</h2> 
 
@@ -38,12 +32,13 @@ os de hoje parecem ser chamados de 82c54.
 
 O chip 82c54 parece ser um super conjunto do que parece ser o antigo
 8253. Parece que hoje esses chips estão diretamente integrados à placa
-mãe. A Intel <a href="http://download.intel.com/design/archives/periphrl/docs/23124406.pdf">documenta</a>
-o chip e <a href="http://www.intel.com/design/archives/periphrl/docs/7203.HTM">responde
-umas perguntas</a>. Devem existir diversos outros fabricantes além da
+mãe. A Intel <a href="https://github.com/wendi0/intel/raw/master/files/manuals/23124406.pdf">documenta</a>
+o chip.
+
+<p>Devem existir diversos outros fabricantes além da
 Intel. Pergunta: como posso identificar, programaticamente, qual a
 identificação exata do chip que meu computador possui? A Intel oferece
-um meio de <a href="#cpuid">identificar o seu cpu</a>; como eu faria
+um meio de identificar o seu cpu.  Como eu faria
 então para identificar outros chips do computador?<p>
 
 No seu computador, provavelmente existe um 82c54 ou algo do
@@ -78,14 +73,10 @@ deseja, e ele executa, sem qualquer questionamento.
 
 O cérebro do computador. Parece que à partir do 486, a Intel passou a
 incluir uma instrução chamada <tt>cpuid</tt>; veja
-a <a href="http://www.intel.com/assets/pdf/appnote/241618.pdf">documentação</a>
+a <a href="https://github.com/wendi0/intel/raw/master/files/manuals/cpuid.pdf">documentação</a>
 dela. Essa instrução informa o nome e o número serial do seu cpu. A
 Intel garante que se um processador responder o nome GenuineIntel,
 então é porque ele é de fato um cpu Intel.<p>
-
-<a href="http://www.intel.com/support/processors/index.htm">Vários</a>
-processadores da Intel; o <a href="http://www.intel.com/support/processors/mobile/pm/">Pentium
-M</a>.<p>
 
 <h2>O teclado</h2>
 
@@ -556,8 +547,6 @@ recusados memória eventualmente, e isso serve como um bom sistema para
 testes, afinal é muito fácil hoje em dia não saber o que acontece com
 os programas quando não há memória para executá-los. O espaço em disco
 é tão grande que sempre há memória virtual disponível.
-
-
 
 <br><br>
 Created: Thu Jan 01 16:27:54 CET 2009.<br>
