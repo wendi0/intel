@@ -1,0 +1,566 @@
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html>
+<head>
+<title>Sobre os computadores da Intel</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+<h2>Introdução</h2> 
+
+Os computadores da Intel são complicados.
+
+<h2>A arquitetura</h2>
+
+Os <a href="http://www.intel.com/products/processor/manuals/index.htm">livros</a>
+da Intel. Esses documentos cobrem as arquiteturas IA-32 e Intel 64. O
+primeiro a ser lido talvez seja o 
+<a href="http://download.intel.com/design/processor/manuals/253665.pdf">arquitetura
+básica</a> que explica por exemplo o que é segmentação e pageamento
+--- capítulo 3. Já o 
+<a href="http://download.intel.com/design/processor/manuals/253668.pdf">volume
+3a</a> fala em detalhes como operar as coisas descritas no volume 1,
+arquitetura básica.<p>
+
+<a href="http://download.intel.com/design/processor/manuals/253666.pdf">Instruções de A-M</a><br>
+<a href="http://download.intel.com/design/processor/manuals/253667.pdf">Instruções de N-Z</a>
+
+<h2>O batimento cardíaco</h2> 
+
+Um computador da Intel possui um mecanismo que eu chamo de batimento
+cardíaco. De tempos em tempos, esse mecanismo interrompe o cpu para
+que tenhamos a chance de fazer outras coisas. Sem essa interrupção, o
+cpu nunca sabe quando parar de fazer o que está fazendo para ir fazer
+outras coisas. A Intel fabrica um chip que implementa esse mecanismo;
+os de hoje parecem ser chamados de 82c54.
+
+<h2>O chip 82c54</h2>
+
+O chip 82c54 parece ser um super conjunto do que parece ser o antigo
+8253. Parece que hoje esses chips estão diretamente integrados à placa
+mãe. A Intel <a href="http://download.intel.com/design/archives/periphrl/docs/23124406.pdf">documenta</a>
+o chip e <a href="http://www.intel.com/design/archives/periphrl/docs/7203.HTM">responde
+umas perguntas</a>. Devem existir diversos outros fabricantes além da
+Intel. Pergunta: como posso identificar, programaticamente, qual a
+identificação exata do chip que meu computador possui? A Intel oferece
+um meio de <a href="#cpuid">identificar o seu cpu</a>; como eu faria
+então para identificar outros chips do computador?<p>
+
+No seu computador, provavelmente existe um 82c54 ou algo do
+gênero. Você pode vê-lo em funcionamento queimando um CD com
+esta <a href="files/kernels/ecacb1e99897977ea58efe02c2467e9c.iso">imagem</a>. Depois
+de queimar, boote o seu computador com o CD. Essa imagem possui um
+programa que diz ao 82c54 para interromper o cpu a cada 1
+segundo. Quando você cansar de assistir, desligue o computador.<p>
+
+Quando o 82c54 dispara, ele interrompe o cpu na irq0. Parece que o cpu
+possui uma hierarquia de importância, e a irq0 vem a ser a de maior
+prioridade. Então quando o 82c54 dispara, não importa o que está
+havendo no sistema, o cpu vai parar o que ele estiver fazendo e ir ver
+o que há com o 82c54.
+
+<h2>O vídeo</h2>
+
+Algum mecanismo é necessário para controlar o monitor do computador; o
+vídeo do computador. O vídeo tem vários modos. Um deles bem útil é o
+modo texto que pode ser acessado, como uma tabela de 80 colunas por 25
+linhas, se escrevemos no endereço de memória física 0xB8000. Parece
+que isso é verdade só enquanto não habilitamos o pageamento de memória
+no cpu, onde então seria preciso escrever no endereço de
+memória virtual referente a este endereço físico; mas não verifiquei
+isso ainda.<p>
+
+O vídeo não parece necessitar de interromper o cpu para nada. Então é
+um mecanismo de interação simples; a gente diz para ele o que a gente
+deseja, e ele executa, sem qualquer questionamento.
+
+<h2><a name="cpuid">O cpu</a></h2> 
+
+O cérebro do computador. Parece que à partir do 486, a Intel passou a
+incluir uma instrução chamada <tt>cpuid</tt>; veja
+a <a href="http://www.intel.com/assets/pdf/appnote/241618.pdf">documentação</a>
+dela. Essa instrução informa o nome e o número serial do seu cpu. A
+Intel garante que se um processador responder o nome GenuineIntel,
+então é porque ele é de fato um cpu Intel.<p>
+
+<a href="http://www.intel.com/support/processors/index.htm">Vários</a>
+processadores da Intel; o <a href="http://www.intel.com/support/processors/mobile/pm/">Pentium
+M</a>.<p>
+
+<h2>O teclado</h2>
+
+O teclado usa o endereço io 0x60. Se executamos <tt>asm ("inb %1, %0"
+: "=a"(byte) : "dN"(0x60))</tt> podemos ler um byte representando o
+que está havendo com o teclado. Essa <a href="files/kernels/7c96ea1123361dd9e7a1714a5f2b9c64.iso">imagem</a>
+exibe o que você digita no monitor.
+
+<h2>O endereçamento da memória</h2>
+
+Parece que a memória física de um computador de 32 bits vai de 0 até
+2^32- 1. Mas muitos endereços são usados pelo próprio hardware. Isso
+parece ser uma idéia muito boa porque facilita bastante a comunicação
+com eles. Por exemplo, o vídeo tem uma memória que é dele próprio que
+está mapeada na memória principal que vai de 0x000a0000 até
+0x000bffff. Quando escrevemos nesses endereços, não estamos escrevendo
+na memória principal não, estamos escrevendo direto na memória do
+vídeo --- algum chip lá no dispositivo de vídeo. Assim a escrita não é
+lenta, mas perdemos um pedaço da memória principal.<p>
+
+A gente pode dar uma espiada na organização do linux kernel.<p>
+
+<tt>
+%cat /proc/iomem<br>
+00000000-0009f7ff : System RAM<br>
+  00000000-00000000 : Crash kernel<br>
+0009f800-0009ffff : reserved<br>
+000a0000-000bffff : Video RAM area<br>
+000c0000-000c7fff : Video ROM<br>
+000ca000-000cafff : Adapter ROM<br>
+000f0000-000fffff : System ROM<br>
+00100000-03eeffff : System RAM<br>
+  00100000-00281644 : Kernel code<br>
+  00281645-003127b3 : Kernel data<br>
+03ef0000-03efefff : ACPI Tables<br>
+03eff000-03efffff : ACPI Non-volatile Storage<br>
+03f00000-03ffffff : System RAM<br>
+10000000-1000ffff : 0000:00:11.0<br>
+10010000-10017fff : 0000:00:0f.0<br>
+10018000-1001bfff : 0000:00:10.0<br>
+e8000000-ebffffff : 0000:00:00.0<br>
+ec000000-ec7fffff : 0000:00:0f.0<br>
+ec800000-ec800fff : 0000:00:10.0<br>
+f0000000-f7ffffff : 0000:00:0f.0<br>
+fec00000-fec0ffff : reserved<br>
+fee00000-fee00fff : reserved<br>
+fffe0000-ffffffff : reserved
+</tt><p>
+
+<h2>Endereços io</h2>
+
+O cpu oferece as instruções <tt>in</tt> e <tt>out</tt>. Elas são
+usadas para fazer input e output, respectivamente. Assim podemos falar
+com os dispositivos; ou seja, essas instruções fazem o cpu enviar um
+byte para um certo dispositivo, ou ler um byte de um dispositivo. Essa
+não é a forma mais fácil de comunicação, entretanto; seria mais fácil
+escrever diretamente na memória principal sendo que o trecho de
+memória sendo escrito ou lido estaria mapeado direto no dispositivo em
+questão, e assim nos comunicaríamos com ele --- assim como fazemos com
+o vídeo. Só que isso não é tão ideal. Usando as
+instruções <tt>inb</tt> e <tt>outb</tt>, o cpu garante que o i/o é
+feito antes que a próxima instrução seja executada --- <tt>inb</tt>
+e <tt>outb</tt> são atômicas.<p>
+
+Quando programamos o chip 82c54, escrevemos em 0x43. Isso não é um
+endereço da memória principal. Isso é um pedaço do endereçamento i/o
+do cpu. 
+
+<blockquote>The processor's I/O address space is separate and distinct
+from the physical-memory address space. The I/O address space consists
+of 2^16 (64K) individually addressable 8-bit I/O ports, numbered 0
+through 0xffff. I/O port addresses 0xf8 through 0xff are reserved. Do
+not assign I/O ports to these addresses. -- Iv1, seção
+13.3.</blockquote>
+
+A Intel diz que 0xf8-0xff estão reservados, mas o linux kernel parece
+dizer que o fpu está localizado lá. Vai ver estava reservado para o
+fpu.<p>
+
+<tt>
+%cat /proc/ioports<br>
+0000-001f : dma1<br>
+0020-0021 : pic1<br>
+0040-0043 : timer0<br>
+0050-0053 : timer1<br>
+0060-006f : keyboard<br>
+0070-0077 : rtc<br>
+0080-008f : dma page reg<br>
+00a0-00a1 : pic2<br>
+00c0-00df : dma2<br>
+00f0-00ff : fpu<br>
+0170-0177 : ide1<br>
+02f8-02ff : serial<br>
+0376-0376 : ide1<br>
+0378-037a : parport0<br>
+03c0-03df : vga+<br>
+03f2-03f5 : floppy<br>
+03f7-03f7 : floppy DIR<br>
+03f8-03ff : serial<br>
+0cf8-0cff : PCI conf1<br>
+1000-103f : 0000:00:07.3<br>
+  1000-103f : motherboard<br>
+    1000-1003 : ACPI PM1a_EVT_BLK<br>
+    1004-1005 : ACPI PM1a_CNT_BLK<br>
+    1008-100b : ACPI PM_TMR<br>
+    100c-100f : ACPI GPE0_BLK<br>
+    1010-1015 : ACPI CPU throttle<br>
+1040-104f : 0000:00:07.3<br>
+  1040-104f : motherboard<br>
+1050-105f : 0000:00:07.1<br>
+  1058-105f : ide1<br>
+1060-106f : 0000:00:0f.0<br>
+1080-10ff : 0000:00:10.0<br>
+1400-147f : 0000:00:11.0<br>
+  1400-141f : pcnet32_probe_pci
+</tt><p>
+
+<h2>A linguagem</h2>
+
+Para falar com os chips, algum assembly é necessário. Felizmente o gcc
+permite vários atalhos. De fato, podemos fazer a parte mais árdua em C
+e inserir umas linhas em assembly. A sintaxe que prefiro então é a da
+AT&T porque é essa que o gnu assembler compreende.<p>
+
+Podemos inserir código assembly exatamente no lugar aonde desejamos
+usando <tt>asm ()</tt>; por exemplo, <tt>asm("incl %eax")</tt>
+incrementa o registrador eax. Mas e se o gcc já estivesse guardando
+algo importante no eax? Estaríamos destruindo o dado. Existe ainda a
+possibilidade do gcc optimizar nosso assembly, gerando uma surpresinha
+na hora que o programa roda. É preciso uma harmonia com o gcc, se
+vamos trabalhar juntos. Daí vem mais uma linguagem, infelizmente.<p>
+
+Para evitar optimização, podemos dizer <tt>asm volatile
+("código")</tt>. Para informar ao gcc do que estamos fazendo, existe
+uma notação extendida da macro <tt>asm ()</tt>. A sintaxe é <tt> asm
+("código" : output : input : destruidos)</tt>. No
+campo <tt>output</tt>, escrevemos os registradores que são usados como
+output no código que escrevemos; similarmente para input, e os
+destruidos são aqueles registradores que o gcc não pode assumir que
+estão intactos. Assim deixamos a escolha de registradores livres para
+o gcc fazer o que ele achar melhor, e continuamos com a liberdade de
+inserir um assembly aonde quisermos.<p>
+
+De uma forma parecida com a <i>printf</i>, podemos escrever <tt>asm
+("movl %1 %0")</tt>, onde <tt>%0</tt> significa o primeiro registrador
+mencionado na lista de registradores, e <tt>%1</tt> o segundo. Existe
+uma indexação então. A contagem inicia na lista output e termina na
+lista input. Quando especificamos mais de um registrador de output, os
+separamos por vírgulas. O limite são 10 registradores, de 0 à 9;
+então <tt>%10</tt> não é o que parece ser. Se algum dia mais de 10
+forem precisos, será necessário extender a capacidade do gcc.<p>
+
+Vamos a um exemplo.<p>
+
+<center><tt>
+asm volatile ("movl %1, %0" : "=r"(begin) : "r"(number));
+</tt></center><p>
+
+Todo registrador de output precisa ser marcado com o
+símbolo <tt>=</tt>. Isso parece redundante, já que colocamos eles numa
+lista de registradores de output. Tenho que lembrar então de sempre
+colocar o símbolo lá. A letra <tt>r</tt> diz que qualquer registrador
+de propósito geral vai servir. A variável <tt>begin</tt> é uma
+variável C; o gcc vai escrever o output da instrução <tt>movl</tt> no
+registrador <tt>=r</tt> e depois vai escrever no endereço de memória
+onde está <tt>begin</tt>; assim podemos trabalhar com o dado em C
+também --- por exemplo, <tt>printf("begin: %d\n", begin);</tt>. Bom,
+não? A idéia é essa.<p>
+
+<pre>
+%cat begin.c
+int main()
+{
+  int begin; int number; number = 19;
+  asm volatile ("movl %1, %0" : "=r" (begin) : "r" (number) );
+  printf("begin: %d\n", begin);
+}
+%make begin
+cc     begin.c   -o begin
+begin.c: In function ‘main’:
+begin.c:8: warning: incompatible implicit declaration of built-in function ‘printf’
+%./begin
+begin: 19
+</pre><p>
+
+Bom, não? Agora vamos olhar um caso real. O
+programa <tt>x86cpuid.c</tt> do djb traz umas novidades.<p>
+
+<pre>
+%cat x86cpuid.c 
+/* Public domain. */
+
+#include <signal.h>
+
+void nope()
+{
+  exit(1);
+}
+
+int main()
+{
+  unsigned long x[4];
+  unsigned long y[4];
+  int i;
+  int j;
+  char c;
+
+  signal(SIGILL,nope);
+
+  x[0] = 0;
+  x[1] = 0;
+  x[2] = 0;
+  x[3] = 0;
+
+  asm volatile(".byte 15;.byte 162" : "=a"(x[0]),"=b"(x[1]),"=c"(x[3]),"=d"(x[2]) : "0"(0) );
+  if (!x[0]) return 0;
+  asm volatile(".byte 15;.byte 162" : "=a"(y[0]),"=b"(y[1]),"=c"(y[2]),"=d"(y[3]) : "0"(1) );
+
+  for (i = 1;i < 4;++i)
+    for (j = 0;j < 4;++j) {
+      c = x[i] >> (8 * j);
+      if (c < 32) c = 32;
+      if (c > 126) c = 126;
+      putchar(c);
+    }
+
+  printf("-%08x-%08x\n",y[0],y[3]);
+
+  return 0;
+}
+</pre><p>
+
+Ele insere o próprio código de máquina da instrução com <tt>.byte
+15;.byte 162</tt>. Isso é o mesmo que escrever <tt>cpuid</tt> lá. Caso
+algo saia errado, como por exemplo executar esse programa num
+processador que não é Intel, o código de máquina não deve casar, e aí
+<tt>SIGILL</tt> é esperado; nesse caso, <tt>exit(1)</tt> executa. Isso
+deve ter sido proposital; talvez um processador AMD, por exemplo,
+suporte a instrução <tt>cpuid</tt>, mas não a responda da mesma forma;
+assim, o resto do programa poderia não fazer sentido; evita-se rodar o
+programa por completo num processador AMD obtendo um <tt>SIGILL</tt>. 
+A idéia parece boa.<p>
+
+Mas e aquele <tt>"0"</tt> lá no input? Bem, aquilo é a indexação que
+falamos lá em cima. Aquele zero significa o primeiro registrador usado
+para output; então ele é o <tt>"=a"</tt>, que vem a ser o eax. Veja
+como a documentação do gcc explica. Ela dá um exemplo<p>
+
+<center><tt>asm ("combine %2,%0" : "=r" (foo) : "0" (foo), "g" (bar));</tt></center><p>
+
+e explica que o ``constraint <tt>`"0"'</tt> for operand 1 says that it
+must occupy the same location as operand 0. A digit in constraint is
+allowed only in an input operand and it must refer to an output
+operand.'' Okay.
+
+<h2>O gerenciamento da memória</h2>
+
+<blockquote>When operating in protected mode, some form of
+segmentation <b>must</b> be used. There is <b>no</b> mode bit to
+disable segmentation. The use of paging, however, is
+optional.</blockquote>
+
+A idéia de segmentação é proteger certas partes da memória. Por
+exemplo, você pode ter o segmento da memória utilizado pelo kernel, e
+um segmento utilizado pelos usuários. Mas parece que esse isolamento
+também pode ser feito com pageamento apenas. Acho que a diferença
+ficaria entre a proteção feita pelo hardware, ou pelo kernel.<p>
+
+<blockquote>When operating in protected mode, all memory accesses pass
+through either the global descriptor table (GDT) or an optional local
+descriptor table (LDT) as shown in Figure 2-1. These tables contain
+entries called segment descriptors. Segment descriptors provide the
+base address of segments well as access rights, type, and usage
+information. -- Iv3 seção 2.1.1.</blockquote>
+
+<h2>Notação</h2>
+
+Observemos esta citação.
+
+<blockquote>In illustrations of data structures in memory, smaller
+addresses appear toward the bottom of the figure; addresses increase
+toward the top. Bit positions are numbered from right to left. The
+numerical value of a set bit is equal to two raised to the power of
+the bit position. Intel 64 and IA-32 processors are “little endian”
+machines; this means the bytes of a word are numbered starting from
+the least significant byte.  Figure 1-1 illustrates these
+conventions. -- Iv3a, seção 1.3.1.</blockquote>
+
+É isso.
+
+<h2>A especificação multiboot</h2>
+
+Criaram um padrão entre boot loaders e kernels. O GNU grub é um boot
+loader super bacana, por exemplo. Com ele, todo o trabalho de colocar
+o cpu em modo protegido e falar com a BIOS já está
+feito. <a href="files/kernels/f0a212c5cb3cec1d2998e043b46733ca.iso">Essa</a>
+imagem exibe alguma informação que o grub oferece. Por
+exemplo, <tt>mem_lower</tt> diz o quanto de memória livre você tem
+abaixo dos 1 MiB chamados de memória superior, e <tt>mem_upper</tt>
+diz o quanto de memória você tem à partir do primeiro 1MiB
+inicial. Essencialmente, sua memória é <tt>mem_upper</tt> + 1 MiB. A
+imagem acima, entretanto, imprimirá os números em KiB.
+
+<h2>A segmentação em modo protegido</h2>
+
+Quando em modo protegido, 
+
+<blockquote>the processor uses two stages of address translation to
+arrive at a physical address: logical-address translation and linear
+address space paging. -- Iv3a, seção 3.4.</blockquote>
+
+Vamos compreender como o acesso a memória é feito pelo cpu, quando em
+modo protegido.
+
+<blockquote>A logical address consists of a 16-bit segment selector
+and a 32-bit offset (see Figure 3-5). The segment selector identifies
+the segment the byte is located in and the offset specifies the
+location of the byte in the segment relative to the base address of
+the segment. -- Iv3a, seção 3.4.</blockquote>
+
+O segment selector deve ser o registrador <tt>%ss</tt>, e o base
+address deve ser o registrador <tt>%ebp</tt>. Então quando um programa
+estiver rodando, é preciso carregar o <tt>%ss</tt> especificando o
+segmento, e o base address do segmento. Vamos escrever um programa que
+imprime o valor do <tt>%ss</tt> e do <tt>%ebp</tt>, mas eu duvido que
+eu possa ler o <tt>%ss</tt> com um programa não privilegiado. Vamos
+ver.
+
+<pre>
+int main()
+{
+  unsigned short ss;
+  unsigned long ebp;
+
+  asm volatile ("movw %%ss, %0" : "=a" (ss));
+  printf("ss: 0x%x\n", ss);
+
+  asm volatile ("movl %%ebp, %0" : "=a" (ebp));
+  printf("ebp: 0x%x\n", ebp);
+}
+
+%./ss
+ss: 0x7b
+ebp: 0xbfa99338
+</pre>
+
+Parece que deu pra ler. O valor de <tt>%ss</tt> é sempre 0x7b.<p>
+
+Parece que o %ss aponta para o segment descriptor que é um item da
+GDT. Nesse item da GDT o cpu encontra informações como as permissões
+do segmento.
+
+<blockquote>A segment selector is a 16-bit identifier for a segment
+(see Figure 3-6). It does not point directly to the segment, but
+instead points to the segment descriptor that defines the segment. --
+Iv3a, seção 3.4.2.</blockquote>
+
+O número 0x7b é 01111011b, e o bit 0 e bit 1 formam o privilege level;
+então como 11b = 3, estamos em privilégio 3, como esperado. O bit 2 é
+0 indicando que a tabela a ser utilizada é a GDT, e não a LDT; então o
+linux usa o protected flat model. Daí ele possui apenas três
+segmentos: o segmento nulo requerido pelo cpu, o segmento do kernel, e
+o segmento do usuário. Podemos chamá-los
+de <tt>gdt[0]</tt>, <tt>gdt[1]</tt>, e <tt>gdt[2]</tt>
+respectivamente. Os outros bits apontam para um lugar na GDT. Como
+1111b = 16, o segmento que estamos é descrito em gdt[2] porque cada
+item da GDT tem 8 bytes, por definição, o que dá 64 bits de
+informação --- veja o Iv3a, seção 3.4.5 para saber a função de cada
+bit desse.<p>
+
+Eis aqui como o cpu identifica o endereço linear do byte a ser
+lido. Se pageamento não está habilitado, esse endereço linear é o
+endereço físico; se está, então ele é o endereço virtual, e o
+mecanismo de pageamento ainda precisa traduzir.
+
+<blockquote>To translate a logical address into a linear address, the
+processor does the following: 1. Uses the offset in the segment
+selector to locate the segment descriptor for the segment in the GDT
+or LDT and reads it into the processor. (This step is needed only when
+a new segment selector is loaded into a segment register.)
+2. Examines the segment descriptor to check the access rights and
+range of the segment to insure that the segment is accessible and that
+the offset is within the limits of the segment.  3. Adds the base
+address of the segment from the segment descriptor to the offset to
+form a linear address. -- Iv3a, seção 3.4.</blockquote>
+
+<h2>As tabelas do sistema</h2>
+
+O cpu precisa que a gente construa várias tabelas: a GDT, a LDT, a
+IDT. A IDT é a Interrupt Descriptor Table. Ela descreve quais funções
+precisam ser chamadas quando uma certa interrupção ao cpu
+ocorre. Quando o chip 82c54 dispara, ele interrompe o cpu pela irq0; o
+cpu pára o que estava fazendo e consulta a IDT.<p>
+
+A GDT é a tabela de segmentação quando em modo protegido. O cpu
+consulta a GDT para saber como nós programamos a distribuição da
+memória.<p>
+
+E a LDT? Mistério.
+
+<h2>O pageamento</h2>
+
+Pageamento é um mecanismo compreendido pelo cpu de como trabalhar com
+a memória do computador. O cpu sabe o que fazer; para usá-lo, só
+precisamos construir as tabelas necessárias, e habilitar o
+mecanismo.<p>
+
+O registrador %cr0 controla o pageamento. Setando o bit 31 do %cr0,
+pageamento é habilitado. Em símbolos, <tt>asm ("orl $0x80000000,
+%cr0")</tt>.<p>
+
+<blockquote>The PG flag enables the page-translation mechanism. The
+operating system or executive usually sets this flag during processor
+initialization. The PG flag must be set if the processor’s
+page-translation mechanism is to be used to implement a demand- paged
+virtual memory system or if the operating system is designed to run
+more than one program (or task) in virtual-8086 mode. -- IAv3a, seção
+3.6.1.</blockquote>
+
+<pre>
+int main()
+{
+  unsigned long eax; 
+
+  /* eax = 1 */
+  asm volatile ("movl $1, %eax");
+  /* eax = eax | 0x80000000 */
+  asm volatile ("orl $0x80000000, %0" : "=a" (eax));
+
+  printf("eax: 0x%x\n", eax);
+}
+
+%./orl
+eax: 0x80000001
+</pre>
+
+Quando pageamento é habilitado, 
+
+<blockquote>the processor divides the linear address space into
+fixed-size pages (of 4 KBytes, 2 MBytes, or 4 MBytes in length) that
+can be mapped into physical memory and/or disk storage. When a program
+(or task) references a logical address in memory, the processor
+translates the address into a linear address and then uses its paging
+mechanism to translate the linear address into a corresponding
+physical address.<p>
+
+If the page containing the linear address is not currently in physical
+memory, the processor generates a page-fault exception (#PF). The
+exception handler for the page-fault exception typically directs the
+operating system or executive to load the page from disk storage into
+physical memory (perhaps writing a different page from physical memory
+out to disk in the process). When the page has been loaded in physical
+memory, a return from the exception handler causes the instruction
+that generated the exception to be restarted. The information that the
+processor uses to map linear addresses into the physical address space
+and to generate page-fault exceptions (when necessary) is contained in
+page directories and page tables stored in memory. -- Iv3a, seção
+3.6</blockquote>
+
+Então precisamos construir essas tabelas e diretórios, e habilitar o
+pageamento. Só que uma coisa interessante que poderíamos fazer num
+certo kernel é simplesmente negar a execução de um programa se não o
+colocamos completamente em memória. Ou seja, fazemos memória virtual
+sem swaping. Isso evita escrever a lógica para swapping; a
+consequência, quando não houver memória suficiente para um programa
+rodar, ele não será executado. Muitos programas também vão ser
+recusados memória eventualmente, e isso serve como um bom sistema para
+testes, afinal é muito fácil hoje em dia não saber o que acontece com
+os programas quando não há memória para executá-los. O espaço em disco
+é tão grande que sempre há memória virtual disponível.
+
+
+
+<br><br>
+Created: Thu Jan 01 16:27:54 CET 2009.<br>
+Updated: Sun Jan 18 20:11:35 CET 2009.<br>
+</body>
+
