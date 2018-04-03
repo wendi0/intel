@@ -1,7 +1,7 @@
-<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <html>
 <head>
-<title>Sobre os computadores da Intel</title>
+  <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Sobre os computadores da Intel</title>
 </head>
 
 <body bgcolor="#ffffff">
@@ -48,7 +48,7 @@ então para identificar outros chips do computador?<p>
 
 No seu computador, provavelmente existe um 82c54 ou algo do
 gênero. Você pode vê-lo em funcionamento queimando um CD com
-esta <a href="files/kernels/ecacb1e99897977ea58efe02c2467e9c.iso">imagem</a>. Depois
+esta <a href="https://github.com/wendi0/intel/raw/master/files/kernels/ecacb1e99897977ea58efe02c2467e9c.iso">imagem</a>. Depois
 de queimar, boote o seu computador com o CD. Essa imagem possui um
 programa que diz ao 82c54 para interromper o cpu a cada 1
 segundo. Quando você cansar de assistir, desligue o computador.<p>
@@ -91,7 +91,7 @@ M</a>.<p>
 
 O teclado usa o endereço io 0x60. Se executamos <tt>asm ("inb %1, %0"
 : "=a"(byte) : "dN"(0x60))</tt> podemos ler um byte representando o
-que está havendo com o teclado. Essa <a href="files/kernels/7c96ea1123361dd9e7a1714a5f2b9c64.iso">imagem</a>
+que está havendo com o teclado. Essa <a href="https://github.com/wendi0/intel/raw/master/files/kernels/7c96ea1123361dd9e7a1714a5f2b9c64.iso">imagem</a>
 exibe o que você digita no monitor.
 
 <h2>O endereçamento da memória</h2>
@@ -381,7 +381,7 @@ conventions. -- Iv3a, seção 1.3.1.</blockquote>
 Criaram um padrão entre boot loaders e kernels. O GNU grub é um boot
 loader super bacana, por exemplo. Com ele, todo o trabalho de colocar
 o cpu em modo protegido e falar com a BIOS já está
-feito. <a href="files/kernels/f0a212c5cb3cec1d2998e043b46733ca.iso">Essa</a>
+feito. <a href="https://github.com/wendi0/intel/raw/master/files/kernels/f0a212c5cb3cec1d2998e043b46733ca.iso">Essa</a>
 imagem exibe alguma informação que o grub oferece. Por
 exemplo, <tt>mem_lower</tt> diz o quanto de memória livre você tem
 abaixo dos 1 MiB chamados de memória superior, e <tt>mem_upper</tt>
