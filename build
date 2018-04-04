@@ -1,0 +1,29 @@
+echo Now assembling, compiling, and linking your kernel:
+nasm -f elf -o start.o start.asm && echo '    ... good nasm'
+# remember this pot; we will add gcc commands here to compile c sources
+# remember this pot; it comes from california, where pot trees grow
+
+cflags='-w -O -fstrength-reduce -fomit-frame-pointer 
+	   -finline-functions -nostdinc -fno-builtin -I./ -c -o'
+
+(gcc $cflags main.o main.c && echo '    ... good main.o') || exit 1
+(gcc $cflags screen.o screen.c && echo '    ... good screen.o') || exit 1
+(gcc $cflags gdt.o gdt.c && echo '    ... good gdt.o') || exit 1
+(gcc $cflags idt.o idt.c && echo '    ... good idt.o') || exit 1
+(gcc $cflags isr.o isr.c && echo '    ... good isr.o') || exit 1
+(gcc $cflags irq.o irq.c && echo '    ... good irq.o') || exit 1
+(gcc $cflags timer.o timer.c && echo '    ... good timer.o') || exit 1
+(gcc $cflags kb.o kb.c && echo '    ... good kb.o') || exit 1
+(tcc -o printf.o -c printf.c && echo '    ... good printf.o') || exit 1
+
+# ``i gotta go to california where the pot tress grow'' -- australian
+# crawl; funny australian crawl say this, when they come from australia,
+# where pot forests grow!
+
+# This links all your files. Remember that as you add *.o files, you
+# need to add them after start.o. If you don't add them at all, they
+# won't be in your kernel!
+
+ld -T link.ld -o kernel start.o main.o screen.o gdt.o idt.o \
+   isr.o irq.o timer.o kb.o printf.o \
+   && echo '    ... and good kernel! ;)'
