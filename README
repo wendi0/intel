@@ -1,0 +1,20 @@
+This is a 32-bit kernel for intel machines.  Intel machines are a very
+complicated business.  Now in 2018 most computers are 64 bits, so your
+compiler must generate 32 binaries.  For GCC use -m32 flag.  For LD,
+use -m elf_i386.  (I've added these flags to the build script.)
+
+By the way, in the past --- 2009 ---, I had used tcc (the tiny c
+compiler) to compile printf.c.  I can't remember why I did this.
+(Maybe to produce a smaller binary?)  But today (4/4/2018) I went back
+to GCC because I didn't know how to force tcc to produce 32-bit object
+code while running on a 64-bit system.
+
+To compile, just say ``make'' to your shell.  
+
+You'll need nasm, mkisofs, md5sum.  If you're using a GNU DEBIAN
+system, you won't easily find mkisofs because they actually call it
+genisoimage.  Install genisoimage and make a symbolic link in own your
+bin directory.
+
+  ln -s /usr/bin/genisoimage ~/bin/mkisofs
+

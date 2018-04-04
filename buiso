@@ -4,6 +4,6 @@ sudo losetup /dev/loop0 floppy.img
 sudo dd if=/dev/loop0 of=cd.img bs=10k count=144
 mkdir -p ./iso
 cp ./cd.img ./iso
-sudo mkisofs -r -b cd.img -c cd.catalog -o danux.iso ./iso
+mkisofs -r -b cd.img -c cd.catalog -o danux.iso ./iso
 sudo losetup -d /dev/loop0 
 echo '... done as i promised'
